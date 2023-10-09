@@ -1,4 +1,6 @@
 import psycopg2
+import psycopg2.extras
+psycopg2.extras.register_uuid()
 import os
 
 class DataBase:

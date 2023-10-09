@@ -1,22 +1,57 @@
+import uuid
+from typing import Union, List, get_origin, get_args
+NoneType = type(None)
+
 class BaseSchema():
     def __init__(self, *args, **kwargs) -> None:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     @classmethod
+    def _validate_value_type(cls, value, expected_type):
+        origin = get_origin(expected_type)
+        args = get_args(expected_type)
+
+        # Если ожидается Union (включая Optional)
+        if origin == Union:
+            if value is None:
+                return NoneType in args
+            return any(cls._validate_value_type(value, subtype) for subtype in args)
+
+        # Если ожидается список
+        elif origin == list:
+            if not isinstance(value, list):
+                return False
+            item_type = args[0]
+            if item_type == uuid.UUID:  # Частный случай для UUID
+                return all(cls._is_uuid(item) for item in value)
+            return all(isinstance(item, item_type) for item in value)
+
+        # Для обычных типов
+        else:
+            return isinstance(value, expected_type or origin)
+
+    @staticmethod
+    def _is_uuid(value):
+        try:
+            uuid.UUID(str(value))
+            return True
+        except ValueError:
+            return False
+
+
+    @classmethod
     def validate(cls, data: dict):
         errors = []
         annotations = cls.get_annotations()
-        for field, expected_type in annotations.items():
-            value = data.get(field)
 
-            if not isinstance(value, expected_type):
+        for field, expected_type in annotations.items():
+            value = data.get(field, None)  # Получить значение, если оно есть
+
+            if not cls._validate_value_type(value, expected_type):
                 errors.append(f"Field '{field}' expected type {expected_type}, got {type(value)}")
 
-            if field not in data:
-                errors.append(f"Field '{field}' required")
         return errors
-            
 
     @classmethod
     def get_fields(cls):
@@ -44,3 +79,4 @@ class BaseSchema():
     
     def to_tuple(self):
         return tuple(getattr(self, field) for field in self.get_fields())
+

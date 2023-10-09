@@ -1,9 +1,11 @@
 import uuid
+from typing import Optional
 from resourceapp.schemas.base import BaseSchema
 
 class ResourceBase(BaseSchema):
     name: str
-    max_speed: int
+    current_speed: int
+    type_id: uuid.UUID
 
 class ResourceUpdate(ResourceBase):
     id: uuid.UUID
@@ -14,5 +16,10 @@ class ResourceCreate(ResourceBase):
 class ResourceInDb(ResourceBase):
     id: uuid.UUID
 
-class Resource(ResourceBase):
+class Resource(ResourceInDb):
     pass
+
+class ResourceFilter(BaseSchema):
+    ids: Optional[list[uuid.UUID]] = None
+    type_ids: Optional[list[uuid.UUID]] = None
+    type_names: Optional[list[str]] = None

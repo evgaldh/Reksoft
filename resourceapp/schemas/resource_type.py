@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from resourceapp.schemas.base import BaseSchema
 
 class ResourceTypeBase(BaseSchema):
@@ -16,3 +17,7 @@ class ResourceTypeInDb(ResourceTypeBase):
 
 class ResourceType(ResourceTypeInDb):
     pass
+
+class ResourceTypeFilter(BaseSchema):
+    ids: Optional[list[uuid.UUID]] = None
+    names: Optional[list[str]] = None
