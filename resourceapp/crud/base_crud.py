@@ -15,6 +15,7 @@ class AbstractCrud():
             output_schema: Type[BaseSchema],
             db_schema: Type[BaseSchema],
             filter_schema: Type[BaseSchema] = None) -> None:
+        """Инициализация CRUD класса"""
         self.model = model
         self.create_schema = create_schema
         self.update_schema = update_schema

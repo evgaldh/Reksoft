@@ -6,6 +6,7 @@ from resourceapp.schemas.delete_schema import DeleteSchema
 
 class AbstractRouter():
     def __init__(self, crud: AbstractCrud) -> None:
+        """Инициализация роутера с CRUD операциями."""
         self.crud : AbstractCrud = crud
         self.methods : dict[str, any] = {
             'GET' : self.handle_get,
@@ -15,6 +16,7 @@ class AbstractRouter():
         }
 
     def _load_data(self, method, environ):
+        """Загрузка и декодирование данных из запроса."""
         content_length = int(environ.get('CONTENT_LENGTH', 0))
         if content_length > 0:
             body = environ['wsgi.input'].read(content_length).decode('utf-8')
@@ -27,6 +29,7 @@ class AbstractRouter():
         return None
 
     def _process_data(self, method, data):
+        """Обработка и валидация данных согласно схеме."""
         if not data:
             return None
         
@@ -50,7 +53,7 @@ class AbstractRouter():
         return None
 
     def handle_request(self, method: str, path_parts: list, environ: dict, start_response):
-        """Обрабатывает запрос, пришедший к роутеру ресурса."""
+        """Общий обработчик запроса на основе HTTP-метода."""
         if method not in self.methods:
             self.not_allowed()
         if len(path_parts) != 0:
@@ -62,17 +65,20 @@ class AbstractRouter():
         data_instance = self._process_data(method, data)
         return self.methods[method](environ, start_response, data_instance)
         
-    def handle_get(self, environ: dict, start_response, data: any):       
+    def handle_get(self, environ: dict, start_response, data: any):
+        """Обработчик GET-запроса."""       
         with database_session() as db:
             results = self.crud.get(db, data)
         return self.json_response(results, start_response)
     
-    def handle_post(self, environ: dict, start_response, data: any):       
+    def handle_post(self, environ: dict, start_response, data: any):
+        """Обработчик POST-запроса."""       
         with database_session() as db:
             result = self.crud.create(db, data)
         return self.json_response(result, start_response)
 
     def handle_put(self, environ: dict, start_response, data: any):
+        """Обработчик PUT-запроса."""
         with database_session() as db:
             result = self.crud.update(db, data)
         if not result:
@@ -80,6 +86,7 @@ class AbstractRouter():
         return self.json_response(result, start_response)
 
     def handle_delete(self, environ: dict, start_response, data: any):
+        """Обработчик DELETE-запроса."""
         with database_session() as db:        
             result = self.crud.delete(db, data)
         if not result:
@@ -87,15 +94,19 @@ class AbstractRouter():
         return self.json_response(result, start_response)
 
     def not_found(self, message: str = None):
+        """Обработчик ошибки 404"""
         raise HTTPError('404 NOT FOUND', message if message else 'Not Found')
     
     def not_allowed(self):
+        """Обработчик ошибки 405"""
         raise HTTPError('405 METHOD NOT ALLOWED', 'Method Not Allowed')
     
     def bad_request(self, message: str = None):
+        """Обработчик ошибки 'Некорректный запрос' (400)."""
         raise HTTPError('400 BAD REQUEST', message if message else 'Bad request')
     
     def json_response(self, result: any, start_response):
+        """Формирование JSON-ответа на запрос."""
         if isinstance(result, list):
             response_body = [json.dumps(res, cls=ModelEncoder).encode('utf-8') for res in result]
             response_body = b'\n'.join(response_body)

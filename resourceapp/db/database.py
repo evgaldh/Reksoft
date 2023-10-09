@@ -12,6 +12,7 @@ class DataBase:
             host='localhost', 
             port='5432'
         ) -> None:
+        """Класс для работы с базой данных (PostgreSQL)"""
         self.dbname = dbname
         self.user = user
         self.password = password

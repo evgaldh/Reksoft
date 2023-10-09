@@ -1,6 +1,7 @@
 import os
 
 class Settings:
+    """Класс для получения Env значений"""
     DB_NAME: str = os.environ.get('DB_NAME', 'resource_app') 
     DB_USER: str = os.environ.get('DB_USER') 
     DB_PASSWORD: str = os.environ.get('DB_PASSWORD') 

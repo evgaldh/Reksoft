@@ -4,6 +4,7 @@ NoneType = type(None)
 
 class BaseSchema():
     def __init__(self, *args, **kwargs) -> None:
+        """Первоначальная схема с функциями валидации"""
         for key, value in kwargs.items():
             setattr(self, key, value)
 

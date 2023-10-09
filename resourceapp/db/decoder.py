@@ -2,6 +2,7 @@ import json
 import uuid
 
 class ModelDecoder(json.JSONDecoder):
+    """Сериализатор тела запроса"""
     def __init__(self, *args, **kwargs):
         json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
 
