@@ -2,7 +2,7 @@
 name = "reksoft"
 version = "0.1.0"
 description = ""
-authors = ["antoshayastreb <nedanon@outlook.com>"]
+authors = ["evgaldh <pipboy08577@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
