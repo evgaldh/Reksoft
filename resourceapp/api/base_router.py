@@ -83,7 +83,7 @@ class AbstractRouter():
         with database_session() as db:        
             result = self.crud.delete(db, data)
         if not result:
-            self.not_found(f'Nothing found with id {str(id)}')
+            self.not_found(f'Nothing found with ids {data.ids}')
         return self.json_response(result, start_response)
 
     def not_found(self, message: str = None):

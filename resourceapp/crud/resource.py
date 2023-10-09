@@ -12,9 +12,26 @@ class ResourceCrud(AbstractCrud):
             create_schema=schemas.ResourceCreate, 
             update_schema=schemas.ResourceUpdate, 
             output_schema=schemas.Resource,
+            db_schema=schemas.ResourceInDb,
             filter_schema=schemas.ResourceFilter)
-        
-    def get(self, session: DataBase, data: BaseSchema = None) -> List:
+
+    def update(self, session: DataBase, data: BaseSchema) -> any:
+        if data.type_id:
+            type_id = resourcetype_crud.get(session, id=data.type_id)
+            if not type_id:
+                from resourceapp.core.exceptions import HTTPError
+                raise HTTPError('400 BAD REQUEST', f'ResourceType with id {data.type_id} not found')
+        return super().update(session, data)
+    
+    def create(self, session: DataBase, data: BaseSchema) -> any:
+        if data.type_id:
+            type_id = resourcetype_crud.get(session, id=data.type_id)
+            if not type_id:
+                from resourceapp.core.exceptions import HTTPError
+                raise HTTPError('400 BAD REQUEST', f'ResourceType with id {data.type_id} not found')
+        return super().create(session, data)
+
+    def get(self, session: DataBase, data: BaseSchema = None, id: any = None) -> List:
         fields = self.output_schema.get_fields()
         columns = ', '.join([f'resource.{field}' for field in fields if field != 'speed_excess'])
         
@@ -47,6 +64,9 @@ class ResourceCrud(AbstractCrud):
             where_clauses.append(f"resourcetype.name IN ({type_names_placeholders})")
             params.extend(data.type_names)
         
+        if not params and id:
+            params.extend(id)
+
         where_clause = ' AND '.join(where_clauses)
         if where_clause:
             where_clause = 'WHERE ' + where_clause
@@ -61,3 +81,5 @@ class ResourceCrud(AbstractCrud):
 
 
 resource_crud = ResourceCrud()
+
+from resourceapp.crud.resource_type import resourcetype_crud

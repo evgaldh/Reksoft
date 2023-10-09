@@ -1,2 +1,2 @@
-from resourceapp.schemas.resource_type import ResourceType, ResourceTypeCreate, ResourceTypeUpdate, ResourceTypeFilter
-from resourceapp.schemas.resource import Resource, ResourceCreate, ResourceUpdate, ResourceFilter
+from resourceapp.schemas.resource_type import ResourceType, ResourceTypeInDb, ResourceTypeCreate, ResourceTypeUpdate, ResourceTypeFilter
+from resourceapp.schemas.resource import Resource, ResourceInDb, ResourceCreate, ResourceUpdate, ResourceFilter

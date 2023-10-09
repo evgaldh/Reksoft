@@ -12,11 +12,12 @@ class ResourceTypeCrud(AbstractCrud):
             create_schema=schemas.ResourceTypeCreate, 
             update_schema=schemas.ResourceTypeUpdate,
             output_schema=schemas.ResourceType,
+            db_schema=schemas.ResourceTypeInDb,
             filter_schema=schemas.ResourceTypeFilter)
         
-    def get(self, session: DataBase, data: BaseSchema = None) -> List:
+    def get(self, session: DataBase, data: BaseSchema = None, id: any = None) -> List:
         if not data:
-            return super().get(session, data)
+            return super().get(session, data, id)
         fields = self.output_schema.get_fields()
         columns = ', '.join(fields)
         

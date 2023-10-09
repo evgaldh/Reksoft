@@ -13,11 +13,13 @@ class AbstractCrud():
             create_schema: Type[BaseSchema], 
             update_schema: Type[BaseSchema],
             output_schema: Type[BaseSchema],
+            db_schema: Type[BaseSchema],
             filter_schema: Type[BaseSchema] = None) -> None:
         self.model = model
         self.create_schema = create_schema
         self.update_schema = update_schema
         self.output_schema = output_schema
+        self.db_schema = db_schema
         self.filter_schema = filter_schema
 
     def create(self, session: DataBase, data: BaseSchema) -> any:
@@ -31,13 +33,18 @@ class AbstractCrud():
         result = session.cursor.fetchone()
         return self.output_schema.from_tuple(result)
 
-    def get(self, session: DataBase, data: BaseSchema = None) -> List:
-        fields = self.output_schema.get_fields()
+    def get(self, session: DataBase, data: BaseSchema = None, id: any = None) -> List:
+        fields = self.db_schema.get_fields()
         columns = ', '.join(fields)
-        query = f'SELECT {columns} FROM {self.model.__tablename__()};'
-        session.execute_query(query)
+        if id:
+            params = (id,)
+            query = f'SELECT {columns} FROM {self.model.__tablename__()} where id = %s;'
+            session.execute_query(query, params)
+        else:
+            query = f'SELECT {columns} FROM {self.model.__tablename__()};'
+            session.execute_query(query)
         results = session.cursor.fetchall()
-        return [self.output_schema.from_tuple(row) for row in results]
+        return [self.db_schema.from_tuple(row) for row in results]
 
     def update(self, session: DataBase, data: BaseSchema) -> any:
         fields = data.get_fields()
@@ -49,13 +56,12 @@ class AbstractCrud():
         session.execute_query(query, values_tuple)
         session.commit()
         result = session.cursor.fetchone()
-        return self.output_schema.from_tuple(result) if result else None
+        return self.db_schema.from_tuple(result) if result else None
 
     def delete(self, session: DataBase, data: DeleteSchema) -> List:
         if not data.ids:
             return []
-
-        fields = self.output_schema.get_fields()
+        fields = self.db_schema.get_fields()
         columns = ', '.join(fields)
         ids_placeholders = ', '.join(['%s'] * len(data.ids))
 
@@ -64,5 +70,5 @@ class AbstractCrud():
         session.commit()
         results = session.cursor.fetchall()
 
-        return [self.output_schema.from_tuple(row) for row in results]
+        return [self.db_schema.from_tuple(row) for row in results]
 
