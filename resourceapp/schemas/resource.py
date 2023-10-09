@@ -17,7 +17,7 @@ class ResourceInDb(ResourceBase):
     id: uuid.UUID
 
 class Resource(ResourceInDb):
-    pass
+    speed_excess: float
 
 class ResourceFilter(BaseSchema):
     ids: Optional[list[uuid.UUID]] = None

@@ -15,11 +15,20 @@ class ResourceCrud(AbstractCrud):
             filter_schema=schemas.ResourceFilter)
         
     def get(self, session: DataBase, data: BaseSchema = None) -> List:
-        if not data:
-            return super().get(session, data)
         fields = self.output_schema.get_fields()
-        columns = ', '.join(fields)
+        columns = ', '.join([f'resource.{field}' for field in fields if field != 'speed_excess'])
         
+        speed_excess = """
+        CASE 
+            WHEN resource.current_speed > resourcetype.max_speed THEN
+                (resource.current_speed - resourcetype.max_speed) * 100 / resourcetype.max_speed
+            ELSE
+                0
+        END AS speed_excess_percentage
+        """
+
+        columns = f"{columns}, {speed_excess}"
+
         where_clauses = []
         params = []
         
@@ -35,18 +44,16 @@ class ResourceCrud(AbstractCrud):
         
         if data and data.type_names:
             type_names_placeholders = ', '.join(['%s'] * len(data.type_names))
-            where_clauses.append(f"resource_type.name IN ({type_names_placeholders})")
+            where_clauses.append(f"resourcetype.name IN ({type_names_placeholders})")
             params.extend(data.type_names)
         
         where_clause = ' AND '.join(where_clauses)
         if where_clause:
             where_clause = 'WHERE ' + where_clause
 
-        join_clause = ""
-        if data and data.type_names:
-            join_clause = "JOIN resource_type ON resource.type_id = resource_type.id"
+        join_clause = "JOIN resourcetype ON resource.type_id = resourcetype.id"
 
-        query = f'SELECT {columns} FROM resources {join_clause} {where_clause};'
+        query = f'SELECT {columns} FROM resource {join_clause} {where_clause};'
         session.execute_query(query, tuple(params))
         results = session.cursor.fetchall()
         
